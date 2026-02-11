@@ -1,10 +1,11 @@
 "use client";
 
 import { useSearchParams, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, Suspense } from "react"; // Added Suspense
 import api from "@/services/api";
 
-export default function PaymentPage() {
+// 1. Move the logic into a sub-component
+function PaymentContent() {
   const params = useSearchParams();
   const router = useRouter();
 
@@ -24,19 +25,16 @@ export default function PaymentPage() {
     setError("");
 
     try {
-     
       await api.post("/payments", {
         amount: paymentData.numberOfTickets * 150
       });
 
-    
-    const { data } = await api.post("/bookings", {
-  ...paymentData,
-  amount: paymentData.numberOfTickets * 150, 
-});
+      const { data } = await api.post("/bookings", {
+        ...paymentData,
+        amount: paymentData.numberOfTickets * 150,
+      });
 
       router.push(`/success?code=${data.confirmationCode}`);
-
     } catch (err: any) {
       setError(err.response?.data?.message || "Payment failed");
     } finally {
@@ -45,37 +43,36 @@ export default function PaymentPage() {
   };
 
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center">
-      <div className="bg-white/10 backdrop-blur-md rounded-xl p-6 w-[360px] text-white">
+    <div className="bg-white/10 backdrop-blur-md rounded-xl p-6 w-[360px] text-white">
+      <h1 className="text-xl font-semibold mb-4">Payment</h1>
 
-        <h1 className="text-xl font-semibold mb-4">
-          Payment
-        </h1>
-
-        <div className="text-sm text-gray-300 space-y-1 mb-4">
-          <p>Name: {paymentData.name}</p>
-          <p>Email: {paymentData.email}</p>
-          <p>Tickets: {paymentData.numberOfTickets}</p>
-          <p>
-            Amount: ₹{paymentData.numberOfTickets * 150}
-          </p>
-        </div>
-
-        {error && (
-          <p className="text-red-400 text-sm mb-3">
-            {error}
-          </p>
-        )}
-
-        <button
-          onClick={handlePayment}
-          disabled={loading}
-          className="w-full bg-red-600 hover:bg-red-700
-                     py-2.5 rounded-lg font-medium transition"
-        >
-          {loading ? "Processing..." : "Pay Now"}
-        </button>
+      <div className="text-sm text-gray-300 space-y-1 mb-4">
+        <p>Name: {paymentData.name}</p>
+        <p>Email: {paymentData.email}</p>
+        <p>Tickets: {paymentData.numberOfTickets}</p>
+        <p>Amount: ₹{paymentData.numberOfTickets * 150}</p>
       </div>
+
+      {error && <p className="text-red-400 text-sm mb-3">{error}</p>}
+
+      <button
+        onClick={handlePayment}
+        disabled={loading}
+        className="w-full bg-red-600 hover:bg-red-700 py-2.5 rounded-lg font-medium transition"
+      >
+        {loading ? "Processing..." : "Pay Now"}
+      </button>
+    </div>
+  );
+}
+
+// 2. The main page component wraps the content in Suspense
+export default function PaymentPage() {
+  return (
+    <div className="min-h-screen bg-black flex items-center justify-center">
+      <Suspense fallback={<div className="text-white">Loading Payment details...</div>}>
+        <PaymentContent />
+      </Suspense>
     </div>
   );
 }
