@@ -1,11 +1,11 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { Suspense } from "react"; // 1. Import Suspense
+import { Suspense } from "react"; // 1. Must import Suspense
 import Link from "next/link";
 
-// 2. Move all logic using useSearchParams into this sub-component
-function SuccessDetails() {
+// 2. Move the UI logic into a separate component
+function SuccessContent() {
   const searchParams = useSearchParams();
   const confirmationCode = searchParams.get("code");
 
@@ -14,27 +14,27 @@ function SuccessDetails() {
       <div className="text-green-500 text-5xl mb-4">✓</div>
       <h1 className="text-2xl font-bold mb-2">Booking Confirmed!</h1>
       <p className="text-gray-300 mb-6">
-        Your confirmation code is: 
+        Confirmation Code: 
         <span className="block text-white font-mono font-bold mt-2 text-xl">
-          {confirmationCode || "Checking..."}
+          {confirmationCode || "Loading..."}
         </span>
       </p>
       <Link 
         href="/" 
-        className="inline-block bg-red-600 hover:bg-red-700 px-6 py-2 rounded-lg transition font-medium"
+        className="inline-block bg-red-600 hover:bg-red-700 px-6 py-2 rounded-lg transition"
       >
-        Go Back Home
+        Return to Home
       </Link>
     </div>
   );
 }
 
-// 3. The main Page component just provides the layout and the Suspense boundary
+// 3. The exported Page component wraps everything in Suspense
 export default function SuccessPage() {
   return (
     <div className="min-h-screen bg-black flex items-center justify-center p-4">
-      <Suspense fallback={<div className="text-white animate-pulse">Loading Confirmation...</div>}>
-        <SuccessDetails />
+      <Suspense fallback={<div className="text-white">Loading confirmation details...</div>}>
+        <SuccessContent />
       </Suspense>
     </div>
   );
