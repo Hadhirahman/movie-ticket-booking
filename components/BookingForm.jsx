@@ -41,30 +41,26 @@ setError("");
 
 
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
-    setLoading(true);
+ const handleSubmit = async (e) => {
+  e.preventDefault();
+  setError("");
 
-    if (formData.numberOfTickets > selectedSeats) {
-      setError("Not enough seats available");
-      setLoading(false);
-      return;
-    }
+  if (formData.numberOfTickets > (selectedSeats ?? 0)) {
+    setError("Not enough seats available");
+    return;
+  }
 
-    try {
-      const { data } = await api.post("/bookings", {
-        ...formData,
-        movieId: movie._id
-      });
 
-      router.push(`/success?code=${data.confirmationCode}`);
-    } catch (err) {
-      setError(err.response?.data?.message || "Booking failed");
-    } finally {
-      setLoading(false);
-    }
-  };
+  const query = new URLSearchParams({
+    movieId: movie._id,
+    name: formData.name,
+    email: formData.email,
+    showtime: formData.showtime,
+    tickets: String(formData.numberOfTickets),
+  });
+
+  router.push(`/payment?${query.toString()}`);
+};
 
   return (
     <form
